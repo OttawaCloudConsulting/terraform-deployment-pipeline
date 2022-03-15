@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: "2010-09-09"
+# Description: ""
+Parameters:
+  RoleNameExec:
+    Type: String
+    Default: "orgwide-deployment-execution-role"
+  RoleNameAdmin:
+    Type: String 
+    Default: "orgwide-deployment-admin-role"
+  SSODeploymentRole:
+    Type: String 
+    Default: AWSReservedSSO_deployment-permission
+  AccountIdAdmin:
+    Type: String
+Resources:
+  IAMRoleExecution:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      RoleName: !Ref RoleNameExec
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub 'arn:aws:iam::${AccountIdAdmin}:root'
+            Action: 'sts:AssumeRole'
+            Condition:
+              ArnLike:
+                'aws:PrincipalARN': 
+                  - !Sub 'arn:aws:iam::*:role/${RoleNameAdmin}'
+                  - !Sub 'arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/${AWS::AccountId}/${SSODeploymentRole}*'
+      MaxSessionDuration: 3600
+      ManagedPolicyArns: 
+        - "arn:aws:iam::aws:policy/AdministratorAccess"

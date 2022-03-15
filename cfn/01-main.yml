@@ -1,0 +1,100 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Deploys Deployment Administration Role and CFN Stackset to for all remote execution roles
+# Metadata: 
+
+Parameters: 
+  OrgRootId:
+    Type: String 
+    Description: 'The RootId for the AWS Organiztion'
+  OrgPrefix:
+    Type: String
+    Description: 'Given governance based prefix for naming'
+  TagDeployment:
+    Type: String
+    Description: "Deployment type"
+  TagOwner:
+    Type: String 
+    Description: "Resource owner's email address"
+  TagCategory:
+    Type: String 
+    Description: "Category of resource"
+    Default: "automation"
+  TagClassification:
+    Type: String 
+    Description: "Classification for purpose for resource compliance"
+    Default: "unclassified"
+  CFNTemplateURL:
+    Type: String 
+    Description: "URL to iam_deployment_administration-role.yml"
+  StackSetTemplateURL:
+    Type: String 
+    Description: "URL to iam-deployment-remote-execution-roles.yml"
+
+# Mappings: 
+
+# Conditions: 
+
+Resources: 
+  CFNStackAdministrationRole:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      Parameters: 
+        RoleNameAdmin: 
+          !Sub "${OrgPrefix}-orgwide-deployment-admin-role"
+        RoleNameExec: 
+          !Sub "${OrgPrefix}-orgwide-deployment-execution-role"
+        AccountIdAdmin: !Ref AWS::AccountId
+      Tags: 
+        - Key: Deployment
+          Value: !Ref TagDeployment
+        - Key: Owner
+          Value: !Ref TagOwner
+        - Key: Category
+          Value: !Ref TagCategory
+        - Key: Classifcation
+          Value: !Ref TagClassification
+      TemplateURL: !Ref CFNTemplateURL
+      TimeoutInMinutes: 60
+
+  CFNStackSetRemoteExecutionRole:
+    Type: AWS::CloudFormation::StackSet
+    Properties: 
+      Description: 'Deploys Remote Execution Roles'
+      AutoDeployment: 
+        Enabled: true
+        RetainStacksOnAccountRemoval: false
+      Capabilities: 
+        - CAPABILITY_NAMED_IAM
+      OperationPreferences: 
+        FailureTolerancePercentage: 0
+        MaxConcurrentPercentage: 100
+      Parameters: 
+        - ParameterKey: RoleNameExec
+          ParameterValue: 
+            !Sub ${OrgPrefix}-orgwide-deployment-execution-role
+        - ParameterKey: AccountIdAdmin
+          ParameterValue: !Ref AWS::AccountId
+      PermissionModel: SERVICE_MANAGED
+      StackInstancesGroup: 
+        - DeploymentTargets:
+            OrganizationalUnitIds: 
+              - !Ref OrgRootId
+          Regions:
+            - !Ref AWS::Region
+      StackSetName: 
+        !Sub ${OrgPrefix}-DeploymentRoles
+      Tags: 
+        - Key: Deployment
+          Value: !Ref TagDeployment
+        - Key: Owner
+          Value: !Ref TagOwner
+        - Key: Category
+          Value: !Ref TagCategory
+        - Key: Classifcation
+          Value: !Ref TagClassification
+      # TemplateBody: String
+      TemplateURL: !Ref StackSetTemplateURL
+
+
+# Outputs:

@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: ""
+Parameters:
+  RoleNameAdmin:
+    Type: String
+    Default: "orgwide-deployment-admin-role"
+  RoleNameExec:
+    Type: String
+    Default: "orgwide-deployment-execution-role"
+  AccountIdAdmin:
+    Type: String
+Resources:
+  IAMRoleAdmin:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      RoleName: !Ref RoleNameAdmin
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: 'sts:AssumeRole'
+            Condition: {}
+      MaxSessionDuration: 3600
+      Policies:
+        - PolicyName: permit-assume-role
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: 'sts:AssumeRole'
+                Resource: 
+                  - !Sub 'arn:aws:iam::*:role/${RoleNameExec}'
+  IAMRoleExecution:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      RoleName: !Ref RoleNameExec
+      AssumeRolePolicyDocument: 
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: 
+                - !Sub 'arn:aws:iam::${AccountIdAdmin}:root'
+            Action: 'sts:AssumeRole'
+            Condition:
+              ArnLike:
+                'aws:PrincipalARN': 
+                  - !Sub 'arn:aws:iam::*:role/${RoleNameAdmin}'
+      MaxSessionDuration: 3600
+      ManagedPolicyArns: 
+        - "arn:aws:iam::aws:policy/AdministratorAccess"

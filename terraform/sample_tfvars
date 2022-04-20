@@ -1,0 +1,57 @@
+provider_variables = {
+  region         = "ca-central-1"
+  aws_account_id = "491942823129"
+}
+
+standard_tags = {
+  owner          = "christian.turner"
+  classification = "unclassified"
+  solution       = "deployment pipeline"
+  deployment     = "terraform"
+  category       = "automation"
+}
+
+sso_managed_policies = [
+  "arn:aws:iam::aws:policy/AWSCloud9User",
+  "arn:aws:iam::aws:policy/AmazonCodeGuruReviewerFullAccess",
+  "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess",
+  "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+  "arn:aws:iam::aws:policy/AWSCodeCommitPowerUser",
+  "arn:aws:iam::aws:policy/AmazonCodeGuruProfilerFullAccess"
+]
+
+git = {
+  branch_main = "main"
+  branch_dev  = "dev"
+}
+
+code_config = [
+  {
+    repo_name   = "wordpress"
+    sns_email   = "dev-team@example.com"
+    is_core     = false
+    is_dev_only = false
+    is_dev_prod = true
+  },
+  {
+    repo_name   = "jira"
+    sns_email   = "dev-team@example.com"
+    is_core     = false
+    is_dev_only = true
+    is_dev_prod = false
+  },
+  {
+    repo_name   = "infra-dns"
+    sns_email   = "infra-team@example.com"
+    is_core     = true
+    is_dev_only = false
+    is_dev_prod = false
+  },
+  {
+    repo_name   = "infra-networking"
+    sns_email   = "infra-team@example.com"
+    is_core     = true
+    is_dev_only = false
+    is_dev_prod = false
+  }
+]

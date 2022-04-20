@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - "yum -y install terraform"
+      - "echo 'Init Terraform'"
+      - "terraform init -input=false -no-color" 
+      - "echo 'Lint Terraform'"
+      - "curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash"
+      - "for d in */ ; do ( cd $(echo $d| sed 's|/||g') && tflint ) ;done"
+      - "echo 'Format Terraform'"
+      - "terraform fmt -check -list=false -diff -no-color -recursive"
+      - "echo 'Validate Terraform'"
+      - "terraform validate -no-color"
